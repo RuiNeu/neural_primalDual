@@ -42,7 +42,69 @@
 
 \section{Problem formulation}
 
-Let us consider a dataset with 
+Let us consider a dataset $\mathcal{D} (\cu{X}, \cu{y})$. The loss functions for training an NN are usually MSE or crossentropy:
+
+\begin{equation}
+J(\cu{w}; \mathcal{D}) = L(\cu{w}; \mathcal{D}) + \lambda \phi (\cu{w})
+\end{equation}
+
+For MSE, the above equation generalizes to:
+
+\begin{equation}
+J(\cu{w}; \cu{X}, \cu{y}) = \frac{1}{N}\norm{\cu{y} - f(\cu{w}, \cu{X})}^2 + \lambda \phi(\cu{w})
+\end{equation}
+
+for crossentropy:
+
+\begin{equation}
+J(\cu{w}; \cu{X}, \cu{y}) = \sum^N_{i=1}(y_i\log f(\cu{w},\cu{X}) + (1-y_i)\log (1-f(\cu{w}, \cu{X}))) + \lambda \phi(\cu{w})
+\end{equation}
+where $\lambda \phi(\cu{w})$ can be any regularizers (L1, L2 etc.), and $f(\cdot)$ is network function. 
+
+For a simplest NN example. Here we will use the notation: $\cu{x}\in \mathbb{R}^5: \cu{x} = \{x_1, x_2, ..., x_5\}$ and $y: y\in \mathbb{R}$ as the pair of data for training; $w^l_{ij}$ denotes the weight that connects $i$-th neuron on $(l-1)$-th layer and $j$-th neuron on $l$-th layer; $\sigma_l(\cdot)$ is the activation function for $l$-th layer; $o^l_i$ is the output from the $i$-th neuron of $l$-th layer; $Out$ is the output of the neural network (last neuron): 
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.75]{figs/nn}
+	\centering
+\end{figure}
+
+The loss is:
+
+\begin{equation}
+J(\cu{W}; \cu{x}, y) = \frac{1}{2} (Out_{\cu{W},\cu{x}} - y)^2 + \text{regularizer on } \cu{w}
+\end{equation}
+
+Let us show some forward example of it. Take output $Out$:
+\begin{align}
+Out &= \sigma_3(o^2_1w^3_{11} + o^2_2w^3_{21} + b^3)\\
+&= \sigma_3(\cu{o}^2\cu{w}^3 + b_3)\\
+&= \sigma_3(\Sigma^3_1)
+\end{align}
+where $\cu{o}^2 = [o^2_1, o^2_2]$, $\cu{w}^3 = [w^3_{11}, w^3_{21}]^T$ and $\Sigma^3_1 = \cu{o}^2\cu{w}^3 + b_3$.
+Let us continue for $o^2_1$ and $o^2_2$:
+\begin{align}
+o^2_1 &= \sigma_2(o^1_1w^2_{11} + o^1_2w^2_{21} + o^1_3w^2_{31} + b^2_1)\\
+&= \sigma_2(\Sigma^2_1)\\
+o^2_2 &= \sigma_2(o^1_1w^2_{12} + o^1_2w^2_{22} + o^1_3w^2_{32} + b^2_2)\\
+&= \sigma_2(\Sigma^2_2)\\
+\cu{o}^2 &= \sigma_2(\cu{o}^1\cu{w}^2 + \cu{b}^2)
+\end{align}
+where $\cu{o}^1 = [o^1_1, o^1_2, o^1_3]$ and $\cu{w}^2 = \begin{bmatrix}
+w^2_{11} & w^2_{21} & w^2_{31}\\
+w^2_{12} & w^2_{22} & w^2_{32}
+\end{bmatrix}^T$. and $\cu{o}^1 = \sigma_1(\cu{x}\cu{w}^1 + \cu{b}^1)$. 
+
+In traditional approach, we need to derive the gradient of the loss w.r.t each weight i.e.:
+
+\begin{equation}
+\tash{L(\cu{W}; \cu{x}, y)}{w^l_{ij}}
+\end{equation}
+
+Those gradient can be efficiently obtained by backpropogation (BP). For simplicity, BP not discussed here. 
+
+If we use SGD, the update of weight is just: $w^l_{ij}(k+1) = w^l_{ij}(k) + \eta \tash{L(\cu{W}; \cu{x}, y)}{w^l_{ij}}$.
+
+So what about updating the weight using ADMM or Prime-Dual? The only motivation for doing this is that we can use fancier regularizers (e.g. $\norm{\bm{\Omega} \cu{w}}$)?
 
 \section{ADMM solver}
 We consider the original optimization problem~\eqref{obj_opt}. Firstly, we introduce an auxiliary variable $v$, and have the following constrained problem  
