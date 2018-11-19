@@ -1,0 +1,134 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fullpage}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{times}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{mathrsfs}
+\usepackage{listings}
+\usepackage{autobreak}
+\usepackage{cite}
+\definecolor{mygreen}{rgb}{0,0.4,0}
+\definecolor{myblue}{rgb}{0,0,0.4}
+\lstset{language=Matlab,
+  basicstyle=\scriptsize\ttfamily,
+  keywordstyle=\bfseries\color{black},
+  commentstyle=\itshape\color{red},
+  identifierstyle=\color{myblue},
+  stringstyle=\color{mygreen},
+  }
+\title{Notes on Neural Networks based on primal-dual splitting method }
+\author{Rui}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\section{Introduction}
+
+\section{Problem formulation}
+
+
+
+\section{ADMM solver}
+We consider the original optimization problem~\eqref{obj_opt}. Firstly, we introduce an auxiliary variable $v$, and have the following constrained problem  
+\begin{equation}\label{eq:admm}
+\begin{split}
+\min_{x} &\frac{1}{2} \| y - H \, x \|^2_{R^{-1}}
+   + \frac{1}{2} \| \Psi \, x - m \|^2_{Q^{-1}} 
+   + \lambda \|\Omega\, x \|_1  \\
+\mathrm{s.t.}\ & v = \Omega\,x . 
+\end{split}
+\end{equation}
+Then, Let $\mathcal{L_\rho}(x,v;\eta)$ be the augmented Lagrangian function of~Eq.~\eqref{eq:admm} which is defined as follows
+\begin{equation}\label{Lagrangian_func}
+\begin{split}
+\begin{aligned}
+\mathcal{L_\rho}(x,v;\eta) \triangleq  \frac{1}{2}  \left \|  H\,x-y \right \|_{R^{-1}}^2 + \lambda\left \| v \right \|_1 
++ \frac{1}{2} \left \| \Psi \, x - m\right\|_{ Q^{-1} }^2    
++ \frac{\rho}{2}\left \| v- \Omega \,x + \eta \right \|^2
+\end{aligned}
+\end{split}
+\end{equation}
+The solution of~\eqref{Lagrangian_func} can be obtained by the following steps \cite{Boyd2011ADMM}:
+\begin{enumerate}
+\item Input: $ v^0$, $\eta^0$, $\rho$,
+\item Loop: For $k=1,2,\cdots$ until termination criteria are met.
+\begin{itemize}
+\item Calculate $x^k $ by solving: 
+\begin{equation}
+\label{x_update}
+\begin{split}
+x^{k+1} &= \arg \min_x \  \mathcal{L_\rho}(x,v^k;\eta^k) \\
+        &= \arg \min_x \   \underbrace{\frac{1}{2} \left\|  H x- y \right\|_{R^{-1}}^2 
+          + \frac{1}{2} \left\| \Psi x - m \right\|_{Q^{-1} }^2
+          + \frac{\rho}{2} \left\| v- \Omega\,x + \eta \right\|^2 }_{E(x)}
+\end{split}
+\end{equation}
+We then compute the gradient of $E(x)$ by
+%
+\begin{equation}
+\begin{split}
+   \nabla E(x)
+   &= -H^\top R^{-1} ( y - H \, x )
+   +  \Psi^\top Q^{-1} ( \Psi \, x - m ) 
+   - \rho \, \Omega^\top ( v - \Omega \, x + \eta ) \\
+   &= H^\top R^{-1} H \, x - H^\top R^{-1} y
+   +  \Psi^\top Q^{-1}  \Psi \, x  - \Psi^\top Q^{-1} m  \\
+   &\qquad + \rho \, \Omega^\top \Omega \, x - \rho \, \Omega^\top ( v + \eta )  \\
+   &= \left[ H^\top R^{-1} H 
+   +  \Psi^\top Q^{-1}  \Psi 
+   + \rho \, \Omega^\top \Omega \right] \, x  \\
+   & \qquad - \left[ H^\top R^{-1} y + \Psi^\top Q^{-1} m + \rho \, \Omega^\top ( v + \eta )  \right]
+   = 0
+\end{split}
+\end{equation}
+%
+Thus, we could have
+%
+\begin{equation}
+\begin{split}
+  x^{k+1} &= \left[ H^\top R^{-1} H 
+   +  \Psi^\top Q^{-1}  \Psi 
+   + \rho \, \Omega^\top \Omega \right]^{-1} \\
+   & \qquad \times \left[ H^\top R^{-1} y + \Psi^\top Q^{-1} m + \rho \, \Omega^\top ( v^k + \eta^k )  \right]
+\end{split}
+\end{equation}
+
+or, we could use RTS smoother to solve the problem~\eqref{x_update} 
+
+\item Calculate $v^k $ by solving: 
+\begin{equation}
+\begin{split}
+v^{k+1} &= \arg \min_v \ \mathcal{L_\rho}(x^{k+1},v;\eta^k)  \\
+&= \lambda \left \| v \right \|_1+\frac{\rho}{2}\left \| v- \Omega x^{k+1} + \eta^{k}\right \|^2 \\
+&= \operatorname{sign}(\Omega x^{k+1} + \eta^k/\rho) \circ \operatorname{max} (|\Omega x^{k+1} + \eta^k/\rho|-{\lambda}/{\rho},0 )
+\end{split}
+\end{equation}
+where $\operatorname{sign}$ represents the signum function, and $\circ$ is the pointwise product. 
+\item Calculate $\eta^k $ by solving:
+\begin{equation}
+\begin{split} 
+\eta^{k+1}= \eta^{k}+ \rho (\Omega\,x^{k+1} -v^{k+1} )
+\end{split}
+\end{equation}
+\end{itemize}
+\item Output: $x^{k+1}$
+\end{enumerate}
+
+
+
+\section{A first-order Primal-dual splitting algorithm}
+
+
+\section{Matlab example}
+%\lstinputlisting{example/***.m} 
+
+\bibliography{note_refs}{}
+\bibliographystyle{plain}
+\end{document}
