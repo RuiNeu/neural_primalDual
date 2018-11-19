@@ -32,6 +32,7 @@
 
 \tableofcontents
 \section{Possible paper production}
+Ordered by priority from high to low
 \begin{itemize}
 	\item Training NN with ADMM (Prime-Dual); 
 	\item Train CapsuleNet with ADMM
@@ -105,6 +106,61 @@ Those gradient can be efficiently obtained by backpropogation (BP). For simplici
 If we use SGD, the update of weight is just: $w^l_{ij}(k+1) = w^l_{ij}(k) + \eta \tash{L(\cu{W}; \cu{x}, y)}{w^l_{ij}}$.
 
 So what about updating the weight using ADMM or Prime-Dual? The only motivation for doing this is that we can use fancier regularizers (e.g. $\norm{\bm{\Omega} \cu{w}}$)?
+
+\subsection{Spectro-temporal layer}
+
+Considering an LTI system:
+
+\begin{equation}
+\begin{split}
+\cu{x}_k & = \cu{A}\cu{x}_{k-1} + \cu{q}, \hfill \cu{q}_k\sim\mathcal{N}(\cu{0},\cu{Q})\\
+y_k &= \cu{H}\cu{x}_k + r_k, \hfill r_k\sim\mathcal{N}(0, R)
+\end{split}
+\label{equ:osc-model}
+\end{equation}
+where $\cu{A}$, $\cu{Q}$ and $\cu{H}$ are defined as:
+\begin{align}
+\cu{A} &= \begin{bmatrix}
+1 & & &\\
+& \cu{A}^1_k & &\\
+& & \ddots &\\
+& & & \cu{A}^M_k
+\end{bmatrix}\\
+\cu{Q} &= \begin{bmatrix}
+qb \Delta t & & &\\
+& \cu{Q}^1_k & & \\
+& & \ddots & \\
+& & & \cu{Q}^M_k
+\end{bmatrix}\\
+\cu{H} &= [1, \cu{H}^1, \ldots, \cu{H}^M] = [1 1 0 1 0, \ldots, 1 0]
+\label{equ:osc-a-q-h}
+\end{align}  
+
+where $\cu{A}^j_k$ and $\cu{Q}^j_k$ are given in closed form:
+\begin{align}
+\cu{A}^j_k &= \exp(\cu{F}_j\Delta t)\\
+&= \begin{bmatrix}
+\cos (2\pi f_j\Delta t) & -\sin (2\pi f_j\Delta t)\\
+\sin (2\pi f_j\Delta t) & \cos (2\pi f_j\Delta t)
+\end{bmatrix}\exp(-\Delta t \lambda_j)\\
+\cu{Q}^j_k &= \int_0^{\Delta t} \exp(\cu{F}_j(\Delta t-s)) \cu{L}\cu{Q}^j_k\cu{L}^\top \exp(\cu{F}_j(\Delta t-s))^\top ds\\
+&= \frac{Q^j_k}{2\lambda^j}(1 - \exp(-2\Delta t \lambda_j)) \cu{I}
+\label{equ:osc-solve}
+\end{align}
+
+We can use Kalman filter to easily estimate $\cu{x}_k$. 
+
+However, the point of spectro-temporal layer is that we set $\cu{A}$ and $\cu{Q}$ are paramiterized by \textbf{trainable} weight $\cu{w}$. 
+
+\begin{equation}
+\begin{split}
+\cu{x}_k & = \cu{A}(\cu{w})\cu{x}_{k-1} + \cu{q}, \hfill \cu{q}_k\sim\mathcal{N}(\cu{0},\cu{Q}(\cu{w}))\\
+y_k &= \cu{H}\cu{x}_k + r_k, \hfill r_k\sim\mathcal{N}(0, R)
+\end{split}
+\label{equ:osc-model}
+\end{equation}
+
+We put a signal $y$ as input of this layer. After Kalman estimation, it outputs a spectrogram (image) $\cu{X}$, we then feed that $\cu{X}$ into NN to classify. Because $\cu{A}$ and $\cu{Q}$ are trainable for NN, thus just optimize that NN loss function, but the computational cost is very expensive. 
 
 \section{ADMM solver}
 We consider the original optimization problem~\eqref{obj_opt}. Firstly, we introduce an auxiliary variable $v$, and have the following constrained problem  
