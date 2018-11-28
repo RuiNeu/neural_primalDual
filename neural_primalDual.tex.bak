@@ -41,7 +41,8 @@ Ordered by priority from high to low
 	\item CSC with ADMM
 \end{itemize}
 \section{Introduction}
-Deep neural networks (DNNs) have  have been used to solve a wide variety of applications such as image classification, object recognition, natural language processing, etc. For past decades, gradient descent-based methods such as backpropagation have mainly been widely used in various optimization techniques for training neural networks. However, it is clear that gradient descent-based learning methods are generally very slow due to improper learning steps or may easily converge to local minima.
+Deep neural networks (DNNs) have  have been used to solve a wide variety of applications such as image classification, object recognition, natural language processing, etc. Although, gradient based search techniques such as backpropagation
+are currently the most widely used optimization techniques for training neural networks, it has been shown that these gradient techniques are severely limited in their ability to computational efficiency. For past decades, gradient descent-based methods such as backpropagation have mainly been widely used in various learning algorithms of neural networks. However, it is clear that gradient descent-based learning methods are generally very slow due to improper learning steps or may easily converge to local minima.
 \section{Problem formulation}
 Consider a dataset $\mathcal{D}(\cu{X}, \cu{y})$ of $n$ observations where $\mathbf{X}$ denotes an input matrix (covariates) of dimension $D_x \times n$ and $\mathbf{y}$ denotes the scalar output (or target) variable.  Given this training dataset,  we wish to make predictions for new inputs $\mathbf{x}^*$. A typical objective function to learn a DNNs with $L$ layers has the
 form 
