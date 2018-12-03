@@ -1,7 +1,8 @@
-\contentsline {section}{\numberline {1}Possible paper production}{1}
+\contentsline {section}{\numberline {1}The Contribution}{1}
 \contentsline {section}{\numberline {2}Introduction}{1}
-\contentsline {section}{\numberline {3}Problem formulation}{2}
-\contentsline {subsection}{\numberline {3.1}One Example}{2}
-\contentsline {section}{\numberline {4}Spectro-temporal layer}{3}
-\contentsline {section}{\numberline {5}ADMM solver for MSE}{4}
-\contentsline {section}{\numberline {6}Matlab example}{5}
+\contentsline {section}{\numberline {3}Notation}{1}
+\contentsline {section}{\numberline {4}Problem formulation}{2}
+\contentsline {subsection}{\numberline {4.1}One Example}{3}
+\contentsline {section}{\numberline {5}Spectro-temporal layer}{4}
+\contentsline {section}{\numberline {6}ADMM solver for MSE}{4}
+\contentsline {section}{\numberline {7}Matlab example}{5}

@@ -32,16 +32,35 @@
 \maketitle
 
 \tableofcontents
-\section{Possible paper production}
+\section{The Contribution}
 Ordered by priority from high to low
 \begin{itemize}
-	\item Training NN with ADMM (Prime-Dual); 
-	\item Train CapsuleNet with ADMM
-	\item Spectro-temporal Layer with ADMM
-	\item CSC with ADMM
+	\item We propose a Deep **** CNN for sparse image classification
+	\item Overcome some problems of SGD
 \end{itemize}
 \section{Introduction}
 Deep neural networks (DNNs) have  have been used to solve a wide variety of applications such as image classification, object recognition, natural language processing, etc. For past decades, gradient descent-based methods such as backpropagation have mainly been widely used in various optimization techniques for training neural networks. However, it is clear that gradient descent-based learning methods are generally very slow due to improper learning steps or may easily converge to local minima.
+\section{Notation}
+For neural networks part, we denote:  $\mathcal{D}(\cu{X}, \cu{y})$ as dataset, which has $N$ data samples (or equivalently to batch\_size here, 'cause no online or stochastic opt is considered) and $N_c$ classes; $\cu{y}$ as $N \times N_c$ label; $\cu{X}$ as $N \times W \times H \times C$ tensor input. where $W, H, C$ represents width, height and channel respectively; For fully-connected layer, $l$ represents $l$-th layer; $L$ as last layer (softmax classifier); $\cu{W}_l, \cu{b}_l, \cu{a}_l, \cu{z}_l, h_l(\cdot)$ as the weight, bias, activation output, summation output and activation function of $l$-th layer respectively; For the convolutional layer, $*$ denotes 2D conv operation; $\otimes$ as element-wise product; we use the same notation $l$ as $l-th$ conv layer, but not to confuse with the FC. $Lc$ as how many conv layers;  $\cu{K}_{i,j}^l$ matrix as the $l$-th layer's conv kernel (for each conv layer, it has $i\times j$ number kernels); $\cu{T}^l_{i,j}$ as the unfolded "Toeplitz" (informally) matrix of corresponding $\cu{K}_{i,j}^l$; $\cu{c}^l_i$ as the input to $l$-th conv layer; $\cu{f}^l_j$ s the $j$-th feature map; $b^l_j$ as layer's bias; 
+
+formally, 
+\begin{align}
+\cu{c}^l_j &= h_l(\sum^m_{i=1}[\cu{c}^{l-1}_i * \cu{K}^l_{i,j}] + b^l_j)\\
+&= h_l(\cu{f}^l_j)
+\label{equ:conv_op}
+\end{align}
+
+where inside the 2D-conv, $u$-th and $v$-th element of $\cu{c}^{l-1}_i * \cu{K}^l_{i,j}$ is :
+\begin{align}
+\cu{c}^{l-1}_i * \cu{K}^l_{i,j} (u,v) &= \sum_m\sum_n \cu{c}^{l-1}_i (u-m, v-n) \cu{K}^l_{i,j} (m,n)
+\end{align}
+which is just a element-wise product of kernel and corresponding patch on $\cu{c}$. This is very easy for backprop to obtain the gradient by chain rules, but however difficult for ADMM to solve (maybe Rui knows how to solve). Thus we rewrite the above matrix as operation of Toeplitz matrix:
+
+\begin{equation}
+\cu{c}^l_j = h_l(\sum^m_{i=1}[\cu{c}^{l-1}_i  \cu{T}^l_{i,j}] + b^l_j)
+\end{equation}
+
+Now it is just a simple matrix product inside, but it is extremely memory-consuming!. Notice that for equation \eqref{equ:conv_op}, \textcolor{blue}{we could also use Fourier transform to solve that, and inverse Fourier. In case the Toeplitz doesn't work, we should also try this}. 
 \section{Problem formulation}
 Consider a dataset $\mathcal{D}(\cu{X}, \cu{y})$ of $n$ observations where $\mathbf{X}$ denotes an input matrix (covariates) of dimension $D_x \times n$ and $\mathbf{y}$ denotes the scalar output (or target) variable.  Given this training dataset,  we wish to make predictions for new inputs $\mathbf{x}^*$. A typical objective function to learn a DNNs with $L$ layers has the
 form 
