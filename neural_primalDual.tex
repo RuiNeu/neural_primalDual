@@ -57,10 +57,10 @@ where inside the 2D-conv, $u$-th and $v$-th element of $\cu{c}^{l-1}_i * \cu{K}^
 which is just a element-wise product of kernel and corresponding patch on $\cu{c}$. This is very easy for backprop to obtain the gradient by chain rules, but however difficult for ADMM to solve (maybe Rui knows how to solve). Thus we rewrite the above matrix as operation of Toeplitz matrix:
 
 \begin{equation}
-\cu{c}^l_j = h_l(\sum^m_{i=1}[\cu{c}^{l-1}_i  \cu{T}^l_{i,j}] + b^l_j)
+\cu{c}^l_j = h_l(\sum^m_{i=1}[\cu{T}^l_{i,j}\cu{c}^{l-1}_i ] + b^l_j)
 \end{equation}
 
-Now it is just a simple matrix product inside, but it is extremely memory-consuming!. Notice that for equation \eqref{equ:conv_op}, \textcolor{blue}{we could also use Fourier transform to solve that, and inverse Fourier. In case the Toeplitz doesn't work, we should also try this}. 
+Now it is just a simple matrix product inside, and further, $\cu{c}$ and $\cu{f}$ are no longer tensor, but a flattened matrix. However it is extremely memory-consuming!. Notice that for equation \eqref{equ:conv_op}, \textcolor{blue}{we could also use Fourier transform to solve that, and inverse Fourier. In case the Toeplitz doesn't work, we should also try this}. 
 \section{Problem formulation}
 Consider a dataset $\mathcal{D}(\cu{X}, \cu{y})$ of $n$ observations where $\mathbf{X}$ denotes an input matrix (covariates) of dimension $D_x \times n$ and $\mathbf{y}$ denotes the scalar output (or target) variable.  Given this training dataset,  we wish to make predictions for new inputs $\mathbf{x}^*$. A typical objective function to learn a DNNs with $L$ layers has the
 form 
